@@ -18,7 +18,7 @@ def create_random_message(board_id: Literal[0, 1, 2, 3]) -> "LimelightMessage":
 
 class LimelightMessage:
 	def __init__(self, header: int) -> None:
-		self.header = header
+		self.header = header  # 1 byte
 
 	def __bytes__(self) -> bytes:
 		output = self.header.to_bytes(1, byteorder="big")
@@ -57,15 +57,25 @@ class TelemetryMessage(LimelightMessage):
 
 		LimelightMessage.__init__(self, 0x01)
 
-		self.board_id = board_id.to_bytes(1, byteorder="big")
-		self.time_stamp = time_stamp.to_bytes(8, byteorder="big")
-		self.data: list[float] = data
+		self.board_id = board_id  # 1 byte
+		self.time_stamp = time_stamp  # 8 byte
+		self.data: list[float] = data  # list[4 byte]
+
+	def __repr__(self) -> str:
+		output = {}
+
+		output["header"] = f"0x{self.header:02x}"
+		output["board_id"] = f"0x{self.board_id:02x}"
+		output["time_stamp"] = f"0x{self.time_stamp:16x}"
+		output["data"] = [f"{data}" for data in self.data]
+
+		return str(output)
 
 	def __bytes__(self) -> bytes:
 		output = LimelightMessage.__bytes__(self)
 
-		output += self.board_id
-		output += self.time_stamp
+		output += self.board_id.to_bytes(1, byteorder="big")
+		output += self.time_stamp.to_bytes(8, byteorder="big")
 
 		for data in self.data:
 			output += struct.pack(">f", data)
@@ -84,14 +94,23 @@ class ValveMessage(LimelightMessage):
 	def __init__(self, command_bitmask: int, state_bitmask: int) -> None:
 		LimelightMessage.__init__(self, 0x02)
 
-		self.command_bitmask = command_bitmask.to_bytes(4, byteorder="big")
-		self.state_bitmask = state_bitmask.to_bytes(4, byteorder="big")
+		self.command_bitmask = command_bitmask  # 4 byte
+		self.state_bitmask = state_bitmask  # 4 byte
+
+	def __repr__(self) -> str:
+		output = {}
+
+		output["header"] = f"0x{self.header:02x}"
+		output["command_bitmask"] = f"b{self.command_bitmask:32b}"
+		output["state_bitmask"] = f"b{self.state_bitmask:32b}"
+
+		return str(output)
 
 	def __bytes__(self) -> bytes:
 		output = LimelightMessage.__bytes__(self)
 
-		output += self.command_bitmask
-		output += self.state_bitmask
+		output += self.command_bitmask.to_bytes(4, byteorder="big")
+		output += self.state_bitmask.to_bytes(4, byteorder="big")
 
 		return output
 
@@ -99,3 +118,10 @@ class ValveMessage(LimelightMessage):
 class HeartbeatMessage(LimelightMessage):
 	def __init__(self) -> None:
 		LimelightMessage.__init__(self, 0x03)
+
+	def __repr__(self) -> str:
+		output = {}
+
+		output["header"] = f"0x{self.header:02x}"
+
+		return str(output)

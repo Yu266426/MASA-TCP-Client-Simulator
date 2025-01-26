@@ -25,7 +25,6 @@ async def client(board_id: Literal[0, 1, 2, 3], delay: float):
 
 async def main():
 	clients = (
-		client(0, 0.01),
 		client(1, 0.01),
 		client(2, 0.01),
 		client(3, 0.01),
